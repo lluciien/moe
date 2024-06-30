@@ -118,59 +118,59 @@
     <div class="add-character-icon" onclick="addCharacter()">+</div>
     <script>
         function addCharacter() {
-            const name = prompt("请输入角色名称：");
-            const description = prompt("请输入角色描述：");
-            const tooltip = prompt("请输入角色提示信息：");
+    const name = prompt("请输入角色名称：");
+    const description = prompt("请输入角色描述：");
+    const tooltip = prompt("请输入角色提示信息：");
 
-            if (name && description) {
-                const container = document.getElementById('characters-container');
-                const newCharacter = document.createElement('div');
-                newCharacter.classList.add('character');
-                newCharacter.innerHTML = `
-                    <div class="character-name">
-                        ${name}
-                        <span class="tooltip">${tooltip}</span>
-                    </div>
-                    ${description}
-                `;
-                container.appendChild(newCharacter);
-                saveCharacters();
-            }
-        }
+    if (name && description) {
+        const container = document.getElementById('characters-container');
+        const newCharacter = document.createElement('div');
+        newCharacter.classList.add('character');
+        newCharacter.innerHTML = `
+            <div class="character-name">
+                ${name}
+                <span class="tooltip">${tooltip}</span>
+            </div>
+            <p>${description}</p>
+        `;
+        container.appendChild(newCharacter);
+        saveCharacters();
+    }
+}
 
-        function saveCharacters() {
-            const characters = Array.from(document.querySelectorAll('.character')).map(character => {
-                return {
-                    name: character.querySelector('.character-name').childNodes[0].nodeValue.trim(),
-                    description: character.childNodes[2].nodeValue.trim(),
-                    tooltip: character.querySelector('.tooltip').innerText.trim(),
-                };
-            });
-            localStorage.setItem('characters', JSON.stringify(characters));
-        }
+function saveCharacters() {
+    const characters = Array.from(document.querySelectorAll('.character')).map(character => {
+        return {
+            name: character.querySelector('.character-name').childNodes[0].nodeValue.trim(),
+            description: character.querySelector('p').innerText.trim(),
+            tooltip: character.querySelector('.tooltip').innerText.trim(),
+        };
+    });
+    localStorage.setItem('characters', JSON.stringify(characters));
+}
 
-        function loadCharacters() {
-            const characters = JSON.parse(localStorage.getItem('characters'));
-            if (characters) {
-                const container = document.getElementById('characters-container');
-                container.innerHTML = ''; // 清空容器
-                characters.forEach(character => {
-                    const newCharacter = document.createElement('div');
-                    newCharacter.classList.add('character');
-                    newCharacter.innerHTML = `
-                        <div class="character-name">
-                            ${character.name}
-                            <span class="tooltip">${character.tooltip}</span>
-                        </div>
-                        ${character.description}
-                    `;
-                    container.appendChild(newCharacter);
-                });
-            }
-        }
+function loadCharacters() {
+    const characters = JSON.parse(localStorage.getItem('characters'));
+    if (characters) {
+        const container = document.getElementById('characters-container');
+        container.innerHTML = ''; // 清空容器
+        characters.forEach(character => {
+            const newCharacter = document.createElement('div');
+            newCharacter.classList.add('character');
+            newCharacter.innerHTML = `
+                <div class="character-name">
+                    ${character.name}
+                    <span class="tooltip">${character.tooltip}</span>
+                </div>
+                <p>${character.description}</p>
+            `;
+            container.appendChild(newCharacter);
+        });
+    }
+}
 
-        // 页面加载时加载角色
-        window.onload = loadCharacters;
+// 页面加载时加载角色
+window.onload = loadCharacters;
     </script>
 </body>
 </html>
