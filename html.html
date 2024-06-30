@@ -141,8 +141,8 @@
         function saveCharacters() {
             const characters = Array.from(document.querySelectorAll('.character')).map(character => {
                 return {
-                    name: character.querySelector('.character-name').innerText.trim(),
-                    description: character.innerText.split('\n').slice(1).join('\n').trim(),
+                    name: character.querySelector('.character-name').childNodes[0].nodeValue.trim(),
+                    description: character.childNodes[2].nodeValue.trim(),
                     tooltip: character.querySelector('.tooltip').innerText.trim(),
                 };
             });
@@ -153,6 +153,7 @@
             const characters = JSON.parse(localStorage.getItem('characters'));
             if (characters) {
                 const container = document.getElementById('characters-container');
+                container.innerHTML = ''; // 清空容器
                 characters.forEach(character => {
                     const newCharacter = document.createElement('div');
                     newCharacter.classList.add('character');
