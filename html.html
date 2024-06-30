@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可爱的萝莉</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            color: #ff69b4;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .character {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .character-name {
+            font-weight: bold;
+            color: #ff69b4;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip {
+            display: none;
+            position: absolute;
+            background-color: rgba(51, 51, 51, 0.8);
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            top: -35px;
+            left: 0;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .character-name:hover .tooltip {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>可爱的萝莉</h1>
+        <p>ps：测试ing
+            <hr>
+            在这里，我们探索一些可爱萝莉角色，她们每一个都有独特的背景和个性。</p>
+        <div class="character">
+            <div class="character-name">
+                爱丽丝
+                <span class="tooltip">一个充满幻想的魔法少女。</span>
+            </div>
+            她是一个精灵族的小女孩，性格活泼开朗。爱丽丝总是能带给周围的人快乐。
+        </div>
+        <div class="character">
+            <div class="character-name">
+                小花
+                <span class="tooltip">一个热爱自然的森林女孩。</span>
+            </div>
+            她总是和动物们在一起，对自然有着深厚的感情。小花常常在森林中漫步，享受自然的美丽。
+        </div>
+        <div class="character">
+            <div class="character-name">
+                樱
+                <span class="tooltip">一个神秘的忍者少女。</span>
+            </div>
+            她在黑夜中行动，拥有惊人的敏捷和智慧。樱的故事充满了冒险和秘密。
+        </div>
+    </div>
+</body>
+</html>
