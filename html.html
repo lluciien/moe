@@ -15,6 +15,7 @@
             align-items: center;
             min-height: 100vh;
             color: #333;
+            position: relative; /* 添加此行以使图标定位相对于 body */
         }
         .container {
             max-width: 800px;
@@ -64,6 +65,24 @@
         .character-name:hover .tooltip {
             display: block;
         }
+        /* 添加图标的样式 */
+        .add-character-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 105, 180, 0.7); /* 半透明背景 */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -72,28 +91,85 @@
         <p>ps：测试ing
             <hr> 
             亿些黑历史。</p>
-        <div class="character">
-            <div class="character-name">
-                长谷
-                <span class="tooltip">倒霉蛋</span>
+        <div id="characters-container">
+            <div class="character">
+                <div class="character-name">
+                    长谷
+                    <span class="tooltip">倒霉蛋</span>
+                </div>
+                没错，团队被书架伤害累计9+hp。
             </div>
-            没错，团队被书架伤害累计9+hp。
-        </div>
-        <div class="character">
-            <div class="character-name">
-                千里湘漓
-                <span class="tooltip">老眉笔二号</span>
+            <div class="character">
+                <div class="character-name">
+                    千里湘漓
+                    <span class="tooltip">老眉笔二号</span>
+                </div>
+                闪避大失败，受d12=12hp，被自己骰娘背刺（。
             </div>
-            闪避大失败，受d12=12hp，被自己骰娘背刺（。
-        </div>
-        <div class="character">
-            <div class="character-name">
-                loading
-                <span class="tooltip">。</span>
+            <div class="character">
+                <div class="character-name">
+                    loading
+                    <span class="tooltip">。</span>
+                </div>
+                loading。
             </div>
-            loading。
         </div>
-            
     </div>
+    <div class="add-character-icon" onclick="addCharacter()">+</div>
+    <script>
+        function addCharacter() {
+            const name = prompt("请输入角色名称：");
+            const description = prompt("请输入角色描述：");
+            const tooltip = prompt("请输入角色提示信息：");
+
+            if (name && description) {
+                const container = document.getElementById('characters-container');
+                const newCharacter = document.createElement('div');
+                newCharacter.classList.add('character');
+                newCharacter.innerHTML = `
+                    <div class="character-name">
+                        ${name}
+                        <span class="tooltip">${tooltip}</span>
+                    </div>
+                    ${description}
+                `;
+                container.appendChild(newCharacter);
+                saveCharacters();
+            }
+        }
+
+        function saveCharacters() {
+            const characters = Array.from(document.querySelectorAll('.character')).map(character => {
+                return {
+                    name: character.querySelector('.character-name').innerText.trim(),
+                    description: character.innerText.split('\n').slice(1).join('\n').trim(),
+                    tooltip: character.querySelector('.tooltip').innerText.trim(),
+                };
+            });
+            localStorage.setItem('characters', JSON.stringify(characters));
+        }
+
+        function loadCharacters() {
+            const characters = JSON.parse(localStorage.getItem('characters'));
+            if (characters) {
+                const container = document.getElementById('characters-container');
+                characters.forEach(character => {
+                    const newCharacter = document.createElement('div');
+                    newCharacter.classList.add('character');
+                    newCharacter.innerHTML = `
+                        <div class="character-name">
+                            ${character.name}
+                            <span class="tooltip">${character.tooltip}</span>
+                        </div>
+                        ${character.description}
+                    `;
+                    container.appendChild(newCharacter);
+                });
+            }
+        }
+
+        // 页面加载时加载角色
+        window.onload = loadCharacters;
+    </script>
 </body>
 </html>
