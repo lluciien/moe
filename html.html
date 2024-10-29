@@ -1,176 +1,193 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>岁月史书</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #333;
-            position: relative; /* 添加此行以使图标定位相对于 body */
-        }
-        .container {
-            max-width: 800px;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        h1 {
-            color: #ff69b4;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        p {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-        }
-        .character {
-            margin: 15px 0;
-            padding: 15px;
-            background-color: #fafafa;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        .character-name {
-            font-weight: bold;
-            color: #ff69b4;
-            cursor: pointer;
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip {
-            display: none;
-            position: absolute;
-            background-color: rgba(51, 51, 51, 0.8);
-            color: #fff;
-            padding: 8px;
-            border-radius: 5px;
-            top: -35px;
-            left: 0;
-            white-space: nowrap;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .character-name:hover .tooltip {
-            display: block;
-        }
-        /* 添加图标的样式 */
-        .add-character-icon {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background-color: rgba(255, 105, 180, 0.7); /* 半透明背景 */
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-    </style>
+    <title>角色和作者展示</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide-vue-next@0.303.0/dist/lucide-vue-next.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>跑团那些事儿</h1>
-        <p>ps：测试ing
-            <hr> 
-            亿些黑历史。</p>
-        <div id="characters-container">
-            <div class="character">
-                <div class="character-name">
-                    长谷
-                    <span class="tooltip">倒霉蛋</span>
+    <div id="app">
+        <div class="min-h-screen flex" :class="[`theme-${currentTheme}`, 'bg-background']">
+            <!-- Sidebar -->
+            <div
+                class="fixed inset-y-0 left-0 z-50 w-64 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-lg"
+                :class="{ '-translate-x-full': !isSidebarOpen }"
+            >
+                <div class="h-full overflow-y-auto bg-sidebar text-primary">
+                    <div class="p-5">
+                        <h2 class="text-3xl font-bold mb-8 text-center">目录</h2>
+                        <div v-for="author in groupedCharacters" :key="author.name" class="mb-6">
+                            <div
+                                @click="toggleAuthor(author.name)"
+                                @touchstart="startLongPress(author)"
+                                @touchend="endLongPress"
+                                @mousedown="startLongPress(author)"
+                                @mouseup="endLongPress"
+                                @mouseleave="endLongPress"
+                                class="flex items-center justify-between cursor-pointer p-2 rounded-lg transition-colors duration-200 hover:bg-accent hover:bg-opacity-10"
+                            >
+                                <span class="font-medium text-lg">{{ author.name }}</span>
+                                <lucide-chevron-down
+                                    :class="['w-5 h-5 transition-transform duration-200', authorExpanded[author.name] ? 'transform rotate-180' : '']"
+                                ></lucide-chevron-down>
+                            </div>
+                            <transition
+                                enter-active-class="transition-all duration-300 ease-out"
+                                leave-active-class="transition-all duration-300 ease-in"
+                                enter-from-class="opacity-0 transform -translate-y-4"
+                                enter-to-class="opacity-100 transform translate-y-0"
+                                leave-from-class="opacity-100 transform translate-y-0"
+                                leave-to-class="opacity-0 transform -translate-y-4"
+                            >
+                                <ul v-if="authorExpanded[author.name]" class="ml-4 mt-2 space-y-2">
+                                    <li
+                                        v-for="character in author.characters"
+                                        :key="character.id"
+                                        @click="selectCharacter(character)"
+                                        class="cursor-pointer p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:bg-opacity-10"
+                                    >
+                                        {{ character.name }}
+                                    </li>
+                                </ul>
+                            </transition>
+                        </div>
+                    </div>
+                    <!-- Theme switcher -->
+                    <div class="absolute bottom-5 left-0 right-0 flex justify-center space-x-3">
+                        <button
+                            v-for="theme in themes"
+                            :key="theme.name"
+                            @click="setTheme(theme.name)"
+                            :class="[
+                                'w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform duration-200 hover:scale-110',
+                                `bg-${theme.color}`,
+                                `focus:ring-${theme.color}`,
+                                currentTheme === theme.name ? 'ring-2 ring-offset-2 scale-110' : ''
+                            ]"
+                            :title="theme.label"
+                        ></button>
+                    </div>
                 </div>
-                没错，团队被书架伤害累计9+hp。
             </div>
-            <div class="character">
-                <div class="character-name">
-                    千里湘漓
-                    <span class="tooltip">老眉笔二号</span>
+
+            <!-- Main content -->
+            <div class="flex-1 lg:ml-64 transition-all duration-300">
+                <!-- Toggle sidebar button -->
+                <button
+                    @click="toggleSidebar"
+                    class="fixed top-5 left-5 z-50 lg:hidden bg-accent text-primary p-2 rounded-full transition duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent"
+                >
+                    <lucide-menu v-if="!isSidebarOpen" class="h-6 w-6"></lucide-menu>
+                    <lucide-x v-else class="h-6 w-6"></lucide-x>
+                </button>
+
+                <!-- Character or Author details -->
+                <div class="p-8 max-w-6xl mx-auto">
+                    <transition
+                        enter-active-class="transition-all duration-300 ease-out"
+                        leave-active-class="transition-all duration-300 ease-in"
+                        enter-from-class="opacity-0 transform translate-y-4"
+                        enter-to-class="opacity-100 transform translate-y-0"
+                        leave-from-class="opacity-100 transform translate-y-0"
+                        leave-to-class="opacity-0 transform translate-y-4"
+                    >
+                        <div v-if="selectedCharacter" class="flex flex-col md:flex-row items-start mt-16 md:mt-0">
+                            <div class="w-full md:w-1/2 mb-8 md:mb-0">
+                                <img
+                                    :src="selectedCharacter.image"
+                                    :alt="selectedCharacter.name"
+                                    class="w-full h-auto rounded-lg shadow-2xl transition-transform duration-200 hover:scale-105"
+                                >
+                            </div>
+                            <div class="w-full md:w-1/2 md:pl-8">
+                                <h1 class="text-5xl font-bold mb-4 text-primary">{{ selectedCharacter.name }}</h1>
+                                <p class="text-2xl mb-6 text-secondary">{{ selectedCharacter.shortDescription }}</p>
+                                <div class="bg-card rounded-lg p-6 mb-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                    <h2 class="text-3xl font-semibold mb-4 text-primary">背景故事</h2>
+                                    <p class="text-secondary text-lg leading-relaxed">{{ selectedCharacter.description }}</p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">年龄</h3>
+                                        <p class="text-secondary text-lg">{{ selectedCharacter.age }} 岁</p>
+                                    </div>
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">职业</h3>
+                                        <p class="text-secondary text-lg">{{ selectedCharacter.occupation }}</p>
+                                    </div>
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">技能</h3>
+                                        <ul class="list-disc list-inside text-secondary text-lg">
+                                            <li v-for="skill in selectedCharacter.skills" :key="skill">{{ skill }}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">作者</h3>
+                                        <p class="cursor-pointer hover:text-accent text-secondary text-lg transition-colors duration-200" @click="selectAuthor(selectedCharacter.author)">
+                                            {{ selectedCharacter.author }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- Character Stories -->
+                                <div class="mt-8">
+                                    <h2 class="text-3xl font-semibold mb-4 text-primary">经历故事</h2>
+                                    <div v-for="(story, index) in selectedCharacter.stories" :key="index" class="bg-card rounded-lg p-4 mb-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">{{ story.title }}</h3>
+                                        <p class="text-secondary text-lg leading-relaxed">{{ story.content }}</p>
+                                    </div>
+                                    <!-- Add new story form -->
+                                    <div class="bg-card rounded-lg p-4 shadow-md">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">添加新故事</h3>
+                                        <input v-model="newStory.title" placeholder="故事标题" class="w-full p-2 mb-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent">
+                                        <textarea v-model="newStory.content" placeholder="故事内容" class="w-full p-2 mb-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" rows="3"></textarea>
+                                        <button @click="addStory" class="bg-accent text-white px-6 py-2 rounded-full hover:bg-accent-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">添加故事</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else-if="selectedAuthor" class="flex flex-col md:flex-row items-start mt-16 md:mt-0">
+                            <div class="w-full md:w-1/2 mb-8 md:mb-0">
+                                <img
+                                    :src="selectedAuthor.image"
+                                    :alt="selectedAuthor.name"
+                                    class="w-full h-auto rounded-lg shadow-2xl transition-transform duration-200 hover:scale-105"
+                                >
+                            </div>
+                            <div class="w-full md:w-1/2 md:pl-8">
+                                <h1 class="text-5xl font-bold mb-4 text-primary">{{ selectedAuthor.name }}</h1>
+                                <p class="text-2xl mb-6 text-secondary">{{ selectedAuthor.shortDescription }}</p>
+                                <div class="bg-card rounded-lg p-6 mb-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                    <h2 class="text-3xl font-semibold mb-4 text-primary">作者简介</h2>
+                                    <p class="text-secondary text-lg leading-relaxed">{{ selectedAuthor.biography }}</p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">创作风格</h3>
+                                        <p class="text-secondary text-lg">{{ selectedAuthor.writingStyle }}</p>
+                                    </div>
+                                    <div class="bg-card rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
+                                        <h3 class="text-xl font-semibold mb-2 text-primary">代表作品</h3>
+                                        <ul class="list-disc list-inside text-secondary text-lg">
+                                            <li v-for="work in selectedAuthor.notableWorks" :key="work">{{ work }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="flex items-center justify-center h-[calc(100vh-4rem)]">
+                            <p class="text-3xl text-primary animate-pulse">请从左侧目录选择一个角色或作者</p>
+                        </div>
+                    </transition>
                 </div>
-                闪避大失败，受d12=12hp，被自己骰娘背刺（
-            </div>
-            <div class="character">
-                <div class="character-name">
-                    loading
-                    <span class="tooltip">。</span>
-                </div>
-                loading。
             </div>
         </div>
     </div>
-    <div class="add-character-icon" onclick="addCharacter()">+</div>
-    <script>
-        function addCharacter() {
-    const name = prompt("请输入角色名称：");
-    const description = prompt("请输入角色描述：");
-    const tooltip = prompt("请输入角色提示信息：");
-
-    if (name && description) {
-        const container = document.getElementById('characters-container');
-        const newCharacter = document.createElement('div');
-        newCharacter.classList.add('character');
-        newCharacter.innerHTML = `
-            <div class="character-name">
-                ${name}
-                <span class="tooltip">${tooltip}</span>
-            </div>
-            <p>${description}</p>
-        `;
-        container.appendChild(newCharacter);
-        saveCharacters();
-    }
-}
-
-function saveCharacters() {
-    const characters = Array.from(document.querySelectorAll('.character')).map(character => {
-        return {
-            name: character.querySelector('.character-name').childNodes[0].nodeValue.trim(),
-            description: character.querySelector('p').innerText.trim(),
-            tooltip: character.querySelector('.tooltip').innerText.trim(),
-        };
-    });
-    localStorage.setItem('characters', JSON.stringify(characters));
-}
-
-function loadCharacters() {
-    const characters = JSON.parse(localStorage.getItem('characters'));
-    if (characters) {
-        const container = document.getElementById('characters-container');
-        container.innerHTML = ''; // 清空容器
-        characters.forEach(character => {
-            const newCharacter = document.createElement('div');
-            newCharacter.classList.add('character');
-            newCharacter.innerHTML = `
-                <div class="character-name">
-                    ${character.name}
-                    <span class="tooltip">${character.tooltip}</span>
-                </div>
-                <p>${character.description}</p>
-            `;
-            container.appendChild(newCharacter);
-        });
-    }
-}
-
-// 页面加载时加载角色
-window.onload = loadCharacters;
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
