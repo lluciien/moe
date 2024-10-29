@@ -31,9 +31,9 @@
                                 class="flex items-center justify-between cursor-pointer p-2 rounded-lg transition-colors duration-200 hover:bg-accent hover:bg-opacity-10"
                             >
                                 <span class="font-medium text-lg">{{ author.name }}</span>
-                                <lucide-chevron-down
+                                <component :is="ChevronDownIcon"
                                     :class="['w-5 h-5 transition-transform duration-200', authorExpanded[author.name] ? 'transform rotate-180' : '']"
-                                ></lucide-chevron-down>
+                                ></component>
                             </div>
                             <transition
                                 enter-active-class="transition-all duration-300 ease-out"
@@ -81,8 +81,8 @@
                     @click="toggleSidebar"
                     class="fixed top-5 left-5 z-50 lg:hidden bg-accent text-primary p-2 rounded-full transition duration-200 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent"
                 >
-                    <lucide-menu v-if="!isSidebarOpen" class="h-6 w-6"></lucide-menu>
-                    <lucide-x v-else class="h-6 w-6"></lucide-x>
+                    <component :is="MenuIcon" v-if="!isSidebarOpen" class="h-6 w-6"></component>
+                    <component :is="XIcon" v-else class="h-6 w-6"></component>
                 </button>
 
                 <!-- Character or Author details -->
@@ -188,6 +188,93 @@
             </div>
         </div>
     </div>
+    <script>
+        const { createApp, ref, computed } = Vue;
+        const { Menu, X, ChevronDown } = LucideVueNext;
+        const app = createApp({
+            setup() {
+                const isSidebarOpen = ref(true);
+                const currentTheme = ref('light');
+                const themes = [
+                    { name: 'light', color: 'gray-200', label: '浅色主题' },
+                    { name: 'dark', color: 'gray-800', label: '深色主题' },
+                ];
+                const groupedCharacters = ref([
+                    { name: '作者A', characters: [{ id: 1, name: '角色A1', image: 'image1.jpg', shortDescription: '角色A1简介', description: '角色A1详细描述', age: 20, occupation: '学生', skills: ['技能1', '技能2'], stories: [{ title: '故事1', content: '故事1内容' }, { title: '故事2', content: '故事2内容' }], author: '作者A' }], },
+                    { name: '作者B', characters: [{ id: 2, name: '角色B1', image: 'image2.jpg', shortDescription: '角色B1简介', description: '角色B1详细描述', age: 25, occupation: '工程师', skills: ['技能3', '技能4'], stories: [{ title: '故事3', content: '故事3内容' }], author: '作者B' }], },
+                ]);
+                const authorExpanded = ref({});
+                const selectedCharacter = ref(null);
+                const selectedAuthor = ref(null);
+                const newStory = ref({ title: '', content: '' });
+
+                const toggleSidebar = () => {
+                    isSidebarOpen.value = !isSidebarOpen.value;
+                };
+
+                const toggleAuthor = (authorName) => {
+                    authorExpanded.value[authorName] = !authorExpanded.value[authorName];
+                };
+
+                const selectCharacter = (character) => {
+                    selectedCharacter.value = character;
+                    selectedAuthor.value = null;
+                };
+
+                const selectAuthor = (author) => {
+                    selectedAuthor.value = groupedCharacters.value.find(a => a.name === author);
+                    selectedCharacter.value = null;
+                };
+
+                const setTheme = (themeName) => {
+                    currentTheme.value = themeName;
+                    localStorage.setItem('theme', themeName);
+                };
+
+                const addStory = () => {
+                    if (newStory.value.title && newStory.value.content) {
+                        selectedCharacter.value.stories.push(newStory.value);
+                        newStory.value = { title: '', content: '' };
+                    }
+                };
+
+                const startLongPress = (author) => {
+                    // 模拟长按操作
+                    setTimeout(() => {
+                        // 在这里添加长按操作的逻辑
+                        console.log('长按', author);
+                    }, 500);
+                };
+
+                const endLongPress = () => {
+                    // 清除长按定时器
+                };
+
+                return {
+                    isSidebarOpen,
+                    currentTheme,
+                    themes,
+                    groupedCharacters,
+                    authorExpanded,
+                    selectedCharacter,
+                    selectedAuthor,
+                    newStory,
+                    toggleSidebar,
+                    toggleAuthor,
+                    selectCharacter,
+                    selectAuthor,
+                    setTheme,
+                    addStory,
+                    startLongPress,
+                    endLongPress,
+                    MenuIcon: Menu,
+                    XIcon: X,
+                    ChevronDownIcon: ChevronDown,
+                };
+            },
+        }).mount('#app');
+
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
